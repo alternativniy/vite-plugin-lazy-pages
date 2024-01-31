@@ -1,5 +1,5 @@
 declare module 'virtual:lazy-pages' {
-  import type { RouteObject } from 'react-router'
+  import type { RouteObject } from 'react-router-dom'
 
   const routes: RouteObject[]
   export default routes

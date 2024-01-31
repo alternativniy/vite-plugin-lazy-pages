@@ -27,7 +27,7 @@ export const getRoutesFromDir = async ({
 
   if (existsSync(resolvedPath)) {
     const checkInExclude = (path: string) =>
-      exclude.some((excludePath) =>
+      exclude?.some((excludePath) =>
         path.includes(resolve(__root, excludePath))
       );
     const structure = readdirSync(resolvedPath, { withFileTypes: true }).filter(

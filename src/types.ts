@@ -1,5 +1,5 @@
 import { Dirent } from 'fs'
-import { LazyRouteFunction, RouteObject as RouteObjectLib } from "react-router";
+import { LazyRouteFunction, RouteObject as RouteObjectLib } from "react-router-dom";
 
 export type RouteObject = Omit<RouteObjectLib, 'lazy' | 'children'> & {
   lazy?: string | LazyRouteFunction<RouteObjectLib>;
