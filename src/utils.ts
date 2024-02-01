@@ -42,46 +42,45 @@ export const getRoutesFromDir = async ({
 }): Promise<RouteObject[]> => {
   const routes: RouteObject[] = [];
   const resolvedPath = resolve(__ROOT, dir);
+  const { extendRoute } = getOptions();
 
   if (existsSync(resolvedPath)) {
     const structure = makeStructure({ dir, filePattern });
 
     for (const file of structure) {
+      let route: RouteObject;
+
       if (file.isDirectory()) {
-        const route = await createLayout(file);
+        route = await createLayout(file);
 
         route.children = await getRoutesFromDir({
           dir: join(file.path, file.name),
           filePattern,
           parentRoute: route,
         });
-
-        route.handle = {
-          ...(route.handle ?? {}),
-          pattern: createRoutePattern(route, parentRoute),
-        };
-
-        if (route.children.length > 0) {
-          routes.push(route);
-        }
       } else {
-        const route = await createRoute(file);
-
+        route = await createRoute(file);
+      }
+      
+      if (route.lazy || (route.children && route.children?.length > 0)) {
         route.handle = {
-          ...(route.handle ?? {}),
           pattern: createRoutePattern(route, parentRoute),
         };
+
+        if (extendRoute) {
+          route = await extendRoute(route);
+        }
 
         routes.push(route);
       }
     }
   }
 
-  return routes.filter((route) => route);
+  return routes;
 };
 
 export const createRoute = async (file: Dirent): Promise<RouteObject> => {
-  const { extendRoute, exportMode } = getOptions();
+  const { exportMode } = getOptions();
 
   const isIndex = file.name.startsWith("index");
   const extension = extname(file.name);
@@ -97,7 +96,7 @@ export const createRoute = async (file: Dirent): Promise<RouteObject> => {
     correctPath = `:${correctPath}`;
   }
 
-  let route: RouteObject = {
+  const route: RouteObject = {
     file,
     path: isIndex ? "" : correctPath,
     index: isIndex,
@@ -107,30 +106,20 @@ export const createRoute = async (file: Dirent): Promise<RouteObject> => {
         : namedExport(IMPORT_PATH),
   };
 
-  if (extendRoute) {
-    route = await extendRoute(route);
-  }
-
   delete route.file;
 
   return route;
 };
 
 export const createLayout = async (file: Dirent): Promise<RouteObject> => {
-  const { extendRoute } = getOptions();
-
   const correctPath = file.name.startsWith("[")
     ? `:${file.name.replace(/[^a-zA-Z0-9-.]/g, "")}`
     : file.name;
 
-  let route: RouteObject = {
+  const route: RouteObject = {
     file,
     path: correctPath,
   };
-
-  if (extendRoute) {
-    route = await extendRoute(route);
-  }
 
   delete route.file;
 

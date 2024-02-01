@@ -63,11 +63,7 @@ export default {
       exportMode: 'default',
       exclude [ 'src/pages/dev' ],
       extendRoute (route) => {
-        if(!route.handle) {
-          route.handle = {}
-        }
-
-        route.handle = { auth: true }
+        route.handle.auth = true;
 
         return route;
       }
@@ -112,4 +108,4 @@ At this time, only directory exclusion is supported
   * **Type**: `(route: RouteObject) => (RouteObject | Promise<RouteObject>)`
   * **Default**: `undefined`
 
-You can extend the route with this function. You can see an example above
+You can extend the route with this function. You can see an example above. Also the route is already an extended route. `route.handle` is an object and contains a `pattern` field.
