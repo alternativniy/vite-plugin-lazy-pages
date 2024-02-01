@@ -16,7 +16,7 @@ export const makeStructure = ({
 }: {
   dir: string;
   filePattern: RegExp;
-}) => {
+}): Dirent[] => {
   const { exclude } = getOptions();
   const resolvedPath = resolve(__ROOT, dir);
 
@@ -31,8 +31,8 @@ export const makeStructure = ({
   return structure;
 };
 
-export const checkIsValidRoute = (route: RouteObject) => {
-  return route.lazy || (route.children && route.children?.length > 0);
+export const checkIsValidRoute = (route: RouteObject): boolean => {
+  return !!(route.lazy || (route.children && route.children?.length > 0));
 };
 
 export const getRoutesFromDir = async ({
@@ -70,8 +70,6 @@ export const getRoutesFromDir = async ({
         parentRoute: route,
       });
     }
-
-    console.log(route, checkIsValidRoute(route))
 
     if (checkIsValidRoute(route)) {
       if (extendRoute) {
