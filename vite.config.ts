@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     lazyPages({
       pages: [ { dir: 'example/pages', filePattern: /^.*\.(js|jsx|ts|tsx)$/ } ],
-      exclude: ['example/pages/products'],
+      //exclude: ['example/pages/products'],
       extendRoute: (route) => {
         if(!route.handle) {
           route.handle = {}

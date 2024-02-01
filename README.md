@@ -1,6 +1,6 @@
 # vite-plugin-lazy-pages
 
-![NPM Version](https://img.shields.io/npm/v/vite-plugin-lazy-pages)
+[![NPM Version](https://img.shields.io/npm/v/vite-plugin-lazy-pages)](https://www.npmjs.com/package/vite-plugin-lazy-pages)
 
 
 Simple file-based routing for Vite. Currently only [React Router](https://github.com/remix-run/react-router/) is supported, and only dynamic page import is supported. Static import is not envisioned or planned.
@@ -79,6 +79,22 @@ export default {
 ### pages
   * **Type**: `{ dir: string; filePattern: RegExp; }[]`
   * **Default**: `[ { dir: 'src/pages', filePattern: /^.*\.(js|jsx|ts|tsx)$/ } ]`
+
+Example structure:
+```
+src/
+  └── pages/
+     ├── index.{jsx|tsx}
+     ├── about.{jsx|tsx}
+     ├── products/
+     │  ├── index.{jsx|tsx}
+     │  └── [id].{jsx|tsx}
+     └── names/
+        ├── index.{jsx|tsx}
+        └── [name]
+          ├── index.{jsx|tsx}
+          └── info.{jsx|tsx}
+```
 
 ### exportMode
   * **Type**: `'default' | 'named'`
