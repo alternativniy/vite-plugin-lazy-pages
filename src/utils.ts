@@ -46,11 +46,11 @@ export const getRoutesFromDir = async ({
 }): Promise<RouteObject[]> => {
   const resolvedPath = resolve(__ROOT, dir);
 
-  if(existsSync(resolvedPath)) return [];
+  if(!existsSync(resolvedPath)) return [];
 
   const routes: RouteObject[] = [];
   const { extendRoute } = getOptions();
-  
+
   const structure = makeStructure({ dir, filePattern });
 
   for (const file of structure) {
@@ -70,6 +70,8 @@ export const getRoutesFromDir = async ({
         parentRoute: route,
       });
     }
+
+    console.log(route, checkIsValidRoute(route))
 
     if (checkIsValidRoute(route)) {
       if (extendRoute) {
