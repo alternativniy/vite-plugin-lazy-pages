@@ -31,6 +31,10 @@ export const makeStructure = ({
   return structure;
 };
 
+export const checkIsValidRoute = (route: RouteObject) => {
+  return route.lazy || (route.children && route.children?.length > 0);
+};
+
 export const getRoutesFromDir = async ({
   dir,
   filePattern,
@@ -40,39 +44,39 @@ export const getRoutesFromDir = async ({
   filePattern: RegExp;
   parentRoute?: RouteObject;
 }): Promise<RouteObject[]> => {
-  const routes: RouteObject[] = [];
   const resolvedPath = resolve(__ROOT, dir);
+
+  if(existsSync(resolvedPath)) return [];
+
+  const routes: RouteObject[] = [];
   const { extendRoute } = getOptions();
+  
+  const structure = makeStructure({ dir, filePattern });
 
-  if (existsSync(resolvedPath)) {
-    const structure = makeStructure({ dir, filePattern });
+  for (const file of structure) {
+    const isLayout = file.isDirectory();
+    let route: RouteObject = isLayout
+      ? await createLayout(file)
+      : await createRoute(file);
 
-    for (const file of structure) {
-      let route: RouteObject;
+    route.handle = {
+      pattern: createRoutePattern(route, parentRoute),
+    };
 
-      if (file.isDirectory()) {
-        route = await createLayout(file);
+    if (isLayout) {
+      route.children = await getRoutesFromDir({
+        dir: join(file.path, file.name),
+        filePattern,
+        parentRoute: route,
+      });
+    }
 
-        route.children = await getRoutesFromDir({
-          dir: join(file.path, file.name),
-          filePattern,
-          parentRoute: route,
-        });
-      } else {
-        route = await createRoute(file);
+    if (checkIsValidRoute(route)) {
+      if (extendRoute) {
+        route = await extendRoute(route);
       }
-      
-      if (route.lazy || (route.children && route.children?.length > 0)) {
-        route.handle = {
-          pattern: createRoutePattern(route, parentRoute),
-        };
 
-        if (extendRoute) {
-          route = await extendRoute(route);
-        }
-
-        routes.push(route);
-      }
+      routes.push(route);
     }
   }
 
