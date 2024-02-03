@@ -18,13 +18,12 @@ export const makeStructure = ({
   filePattern: RegExp;
 }): Dirent[] => {
   const { exclude } = getOptions();
-  const resolvedPath = resolve(__ROOT, dir);
 
   const checkInExclude = (path: string) =>
     exclude?.some((excludePath) => path.includes(resolve(__ROOT, excludePath)));
-  const structure = readdirSync(resolvedPath, { withFileTypes: true }).filter(
+  const structure = readdirSync(dir, { withFileTypes: true }).filter(
     (file) =>
-      !checkInExclude(file.path) &&
+      !checkInExclude(dir) &&
       (file.isDirectory() || (file.isFile() && filePattern.test(file.name)))
   );
 
@@ -51,13 +50,13 @@ export const getRoutesFromDir = async ({
   const routes: RouteObject[] = [];
   const { extendRoute } = getOptions();
 
-  const structure = makeStructure({ dir, filePattern });
+  const structure = makeStructure({ dir: resolvedPath, filePattern });
 
   for (const file of structure) {
     const isLayout = file.isDirectory();
     let route: RouteObject = isLayout
       ? await createLayout(file)
-      : await createRoute(file);
+      : await createRoute(file, resolvedPath);
 
     route.handle = {
       pattern: createRoutePattern(route, parentRoute),
@@ -65,7 +64,7 @@ export const getRoutesFromDir = async ({
 
     if (isLayout) {
       route.children = await getRoutesFromDir({
-        dir: join(file.path, file.name),
+        dir: join(resolvedPath, file.name),
         filePattern,
         parentRoute: route,
       });
@@ -83,7 +82,7 @@ export const getRoutesFromDir = async ({
   return routes;
 };
 
-export const createRoute = async (file: Dirent): Promise<RouteObject> => {
+export const createRoute = async (file: Dirent, filePath: string): Promise<RouteObject> => {
   const { exportMode } = getOptions();
 
   const isIndex = file.name.startsWith("index");
@@ -94,7 +93,7 @@ export const createRoute = async (file: Dirent): Promise<RouteObject> => {
     .replace(/[^a-zA-Z0-9-.]/g, "")
     .replace(nameRegex, "$2")
     .replace(extension, "");
-  const IMPORT_PATH = join(file.path, file.name).replace(__ROOT, "");
+  const IMPORT_PATH = join(filePath, file.name).replace(__ROOT, "");
 
   if (file.name.startsWith("[")) {
     correctPath = `:${correctPath}`;
@@ -121,11 +120,8 @@ export const createLayout = async (file: Dirent): Promise<RouteObject> => {
     : file.name;
 
   const route: RouteObject = {
-    file,
     path: correctPath,
   };
-
-  delete route.file;
 
   return route;
 };
